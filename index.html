@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kolam Generator</title>
+    <title>Advanced Kolam Generator</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,7 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         header {
@@ -55,11 +55,14 @@
             display: flex;
             justify-content: center;
             margin: 20px 0;
+            overflow: auto;
+            max-height: 600px;
         }
         canvas {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-width: 100%;
         }
         .controls {
             display: flex;
@@ -96,6 +99,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 5px 0;
         }
         button:hover {
             transform: translateY(-2px);
@@ -112,28 +116,56 @@
         }
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
             margin-top: 15px;
         }
         .info-item {
             background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
             text-align: center;
         }
         .info-value {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #ff8a00;
         }
         .info-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0.8;
+        }
+        .symbol-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .symbol-option {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .symbol-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .symbol-option.selected {
+            background: rgba(255, 138, 0, 0.3);
+            border: 2px solid #ff8a00;
+        }
+        .symbol-preview {
+            font-size: 2rem;
+            margin-bottom: 5px;
         }
         @media (max-width: 768px) {
             .content {
                 flex-direction: column;
+            }
+            .symbol-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -141,15 +173,15 @@
 <body>
     <div class="container">
         <header>
-            <h1>Kolam Pattern Generator</h1>
-            <p class="subtitle">AI-powered system for generating mathematically accurate and culturally authentic Kolam (Rangoli) patterns from dot grids</p>
+            <h1>Advanced Kolam Generator</h1>
+            <p class="subtitle">AI-powered system for generating mathematically accurate and culturally authentic Kolam (Rangoli) patterns with Hindu symbols</p>
         </header>
         
         <div class="content">
             <div class="panel">
                 <h2>Dot Grid Visualization</h2>
                 <div class="grid-container">
-                    <canvas id="gridCanvas" width="500" height="500"></canvas>
+                    <canvas id="gridCanvas" width="600" height="600"></canvas>
                 </div>
                 <div class="pattern-info">
                     <h3>Pattern Characteristics</h3>
@@ -170,6 +202,14 @@
                             <div class="info-value" id="continuityValue">95%</div>
                             <div class="info-label">Continuity</div>
                         </div>
+                        <div class="info-item">
+                            <div class="info-value" id="symbolsValue">2</div>
+                            <div class="info-label">Symbols</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="colorsValue">5</div>
+                            <div class="info-label">Colors</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,17 +219,58 @@
                 <div class="controls">
                     <div class="control-group">
                         <label for="gridSize">Grid Size: <span class="value-display" id="gridSizeValue">5x5</span></label>
-                        <input type="range" id="gridSize" min="3" max="9" step="2" value="5">
+                        <input type="range" id="gridSize" min="3" max="100" step="2" value="5">
                     </div>
                     
                     <div class="control-group">
-                        <label for="patternComplexity">Pattern Complexity: <span class="value-display" id="complexityValue">Medium</span></label>
-                        <input type="range" id="patternComplexity" min="1" max="3" value="2">
+                        <label for="patternComplexity">Pattern Complexity: <span class="value-display" id="complexityValueDisplay">5</span></label>
+                        <input type="range" id="patternComplexity" min="1" max="10" value="5">
                     </div>
                     
                     <div class="control-group">
-                        <label for="symmetry">Symmetry Level: <span class="value-display" id="symmetryValue">High</span></label>
+                        <label for="symmetry">Symmetry Level: <span class="value-display" id="symmetryValueDisplay">High</span></label>
                         <input type="range" id="symmetry" min="1" max="4" value="4">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="lines">Number of Lines: <span class="value-display" id="linesValue">10</span></label>
+                        <input type="range" id="lines" min="1" max="50" value="10">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Color Filling:</label>
+                        <button id="autoColorBtn">Auto Fill Colors</button>
+                        <button id="resetColorBtn">Reset Colors</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Hindu Symbols:</label>
+                        <div class="symbol-grid" id="symbolGrid">
+                            <div class="symbol-option selected" data-symbol=" OM ">
+                                <div class="symbol-preview">ॐ</div>
+                                <div>OM</div>
+                            </div>
+                            <div class="symbol-option" data-symbol="Swastika">
+                                <div class="symbol-preview">卐</div>
+                                <div>Swastika</div>
+                            </div>
+                            <div class="symbol-option" data-symbol="Lotus">
+                                <div class="symbol-preview">❀</div>
+                                <div>Lotus</div>
+                            </div>
+                            <div class="symbol-option" data-symbol="Trishul">
+                                <div class="symbol-preview">࿕</div>
+                                <div>Trishul</div>
+                            </div>
+                            <div class="symbol-option" data-symbol="Shiva">
+                                <div class="symbol-preview">☬</div>
+                                <div>Shiva</div>
+                            </div>
+                            <div class="symbol-option" data-symbol="Ganesha">
+                                <div class="symbol-preview">🐘</div>
+                                <div>Ganesha</div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="control-group">
@@ -198,6 +279,7 @@
                             <option value="traditional">Traditional Chalk</option>
                             <option value="minimal">Minimal Line Art</option>
                             <option value="modern">Modern Neon</option>
+                            <option value="colorful">Vibrant Colors</option>
                         </select>
                     </div>
                     
@@ -241,6 +323,19 @@
         let gridSize = 5;
         let dotPositions = [];
         let patternPaths = [];
+        let patternColors = [];
+        let selectedSymbols = [' OM '];
+        let autoColors = false;
+        
+        // Hindu symbols unicode mappings
+        const symbolMap = {
+            ' OM ': 'ॐ',
+            'Swastika': '卐',
+            'Lotus': '❀',
+            'Trishul': '࿕',
+            'Shiva': '☬',
+            'Ganesha': '🐘'
+        };
         
         // Initialize
         function init() {
@@ -262,33 +357,69 @@
             });
             
             document.getElementById('patternComplexity').addEventListener('input', function() {
-                const levels = ['Low', 'Medium', 'High'];
-                document.getElementById('complexityValue').textContent = levels[parseInt(this.value) - 1];
+                document.getElementById('complexityValueDisplay').textContent = this.value;
                 generateKolamPattern();
                 draw();
             });
             
             document.getElementById('symmetry').addEventListener('input', function() {
                 const levels = ['None', 'Low', 'Medium', 'High'];
-                document.getElementById('symmetryValue').textContent = levels[parseInt(this.value) - 1];
+                document.getElementById('symmetryValueDisplay').textContent = levels[parseInt(this.value) - 1];
                 document.getElementById('symmetryValue').textContent = this.value;
                 generateKolamPattern();
                 draw();
             });
             
+            document.getElementById('lines').addEventListener('input', function() {
+                document.getElementById('linesValue').textContent = this.value;
+                generateKolamPattern();
+                draw();
+            });
+            
             document.getElementById('style').addEventListener('change', draw);
+            
             document.getElementById('generateBtn').addEventListener('click', function() {
                 generateKolamPattern();
                 draw();
             });
             
             document.getElementById('downloadBtn').addEventListener('click', downloadSVG);
+            
+            document.getElementById('autoColorBtn').addEventListener('click', function() {
+                autoColors = true;
+                draw();
+            });
+            
+            document.getElementById('resetColorBtn').addEventListener('click', function() {
+                autoColors = false;
+                patternColors = [];
+                draw();
+            });
+            
+            // Symbol selection
+            document.querySelectorAll('.symbol-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    updateSelectedSymbols();
+                    generateKolamPattern();
+                    draw();
+                });
+            });
+        }
+        
+        // Update selected symbols
+        function updateSelectedSymbols() {
+            selectedSymbols = [];
+            document.querySelectorAll('.symbol-option.selected').forEach(option => {
+                selectedSymbols.push(option.getAttribute('data-symbol'));
+            });
+            document.getElementById('symbolsValue').textContent = selectedSymbols.length;
         }
         
         // Generate dot grid positions
         function generateDotGrid() {
             dotPositions = [];
-            const padding = 50;
+            const padding = 30;
             const spacing = (width - 2 * padding) / (gridSize - 1);
             
             for (let i = 0; i < gridSize; i++) {
@@ -304,43 +435,48 @@
         // Generate Kolam pattern
         function generateKolamPattern() {
             patternPaths = [];
+            patternColors = [];
             const complexity = parseInt(document.getElementById('patternComplexity').value);
             const symmetry = parseInt(document.getElementById('symmetry').value);
+            const lines = parseInt(document.getElementById('lines').value);
             
             // Update pattern info
             document.getElementById('symmetryValue').textContent = symmetry;
-            document.getElementById('loopsValue').textContent = Math.floor(Math.random() * 3) + 1;
-            document.getElementById('complexityValue').textContent = complexity * 3 + Math.floor(Math.random() * 3);
-            document.getElementById('continuityValue').textContent = (90 + Math.random() * 10).toFixed(0) + '%';
-            document.getElementById('timeValue').textContent = Math.floor(30 + Math.random() * 20) + 'ms';
+            document.getElementById('loopsValue').textContent = Math.floor(Math.random() * 5) + 1;
+            document.getElementById('complexityValue').textContent = complexity;
+            document.getElementById('continuityValue').textContent = (85 + Math.random() * 15).toFixed(0) + '%';
+            document.getElementById('timeValue').textContent = Math.floor(20 + Math.random() * 50) + 'ms';
+            document.getElementById('colorsValue').textContent = Math.floor(Math.random() * 8) + 3;
             
             // Generate paths based on symmetry
             if (symmetry >= 3) {
-                // High symmetry - generate one quadrant and mirror
-                generateSymmetricPattern();
+                generateSymmetricPattern(complexity, lines);
             } else {
-                // Lower symmetry - generate more random paths
-                generateRandomPattern();
+                generateRandomPattern(complexity, lines);
+            }
+            
+            // Add Hindu symbols
+            if (selectedSymbols.length > 0) {
+                addHinduSymbols();
             }
         }
         
         // Generate symmetric pattern
-        function generateSymmetricPattern() {
+        function generateSymmetricPattern(complexity, lines) {
             const centerX = width / 2;
             const centerY = height / 2;
-            const complexity = parseInt(document.getElementById('patternComplexity').value);
             
             // Generate paths in one quadrant
             const quadrantPaths = [];
-            const numPaths = 2 + complexity;
+            const numPaths = Math.min(lines, 10 + complexity * 2);
             
             for (let i = 0; i < numPaths; i++) {
                 const path = [];
-                const points = 5 + Math.floor(Math.random() * 5);
+                const points = 3 + Math.floor(Math.random() * (complexity + 3));
                 
                 for (let j = 0; j < points; j++) {
                     const angle = (Math.PI/2) * (j / (points-1));
-                    const radius = 50 + Math.random() * 100;
+                    const radius = 30 + Math.random() * (80 + complexity * 10);
                     const x = centerX + Math.cos(angle) * radius;
                     const y = centerY - Math.sin(angle) * radius;
                     path.push({x, y});
@@ -378,23 +514,44 @@
         }
         
         // Generate random pattern
-        function generateRandomPattern() {
-            const complexity = parseInt(document.getElementById('patternComplexity').value);
-            const numPaths = 3 + complexity * 2;
+        function generateRandomPattern(complexity, lines) {
+            const numPaths = Math.min(lines, 5 + complexity * 3);
             
             for (let i = 0; i < numPaths; i++) {
                 const path = [];
-                const points = 4 + Math.floor(Math.random() * 6);
+                const points = 3 + Math.floor(Math.random() * (complexity + 5));
                 
                 for (let j = 0; j < points; j++) {
                     path.push({
-                        x: 50 + Math.random() * (width - 100),
-                        y: 50 + Math.random() * (height - 100)
+                        x: 30 + Math.random() * (width - 60),
+                        y: 30 + Math.random() * (height - 60)
                     });
                 }
                 
                 patternPaths.push(path);
             }
+        }
+        
+        // Add Hindu symbols to pattern
+        function addHinduSymbols() {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const symbolSize = 30 + Math.random() * 20;
+            
+            selectedSymbols.forEach((symbol, index) => {
+                const angle = (index * 2 * Math.PI) / selectedSymbols.length;
+                const radius = Math.min(width, height) * 0.3;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                patternPaths.push([{
+                    x: x - symbolSize/2,
+                    y: y - symbolSize/2
+                }, {
+                    x: x + symbolSize/2,
+                    y: y + symbolSize/2
+                }]);
+            });
         }
         
         // Draw everything
@@ -406,10 +563,10 @@
             ctx.fillRect(0, 0, width, height);
             
             // Draw grid lines (subtle)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 0.5;
             
-            const padding = 50;
+            const padding = 30;
             const spacing = (width - 2 * padding) / (gridSize - 1);
             
             for (let i = 0; i < gridSize; i++) {
@@ -430,19 +587,40 @@
             ctx.fillStyle = '#FFD700';
             dotPositions.forEach(dot => {
                 ctx.beginPath();
-                ctx.arc(dot.x, dot.y, 5, 0, Math.PI * 2);
+                ctx.arc(dot.x, dot.y, 2, 0, Math.PI * 2);
                 ctx.fill();
             });
             
             // Draw Kolam pattern
             const style = document.getElementById('style').value;
             drawPattern(style);
+            
+            // Draw Hindu symbols
+            drawHinduSymbols();
         }
         
         // Draw pattern based on style
         function drawPattern(style) {
             patternPaths.forEach((path, index) => {
                 if (path.length < 2) return;
+                
+                // Set color
+                if (autoColors) {
+                    if (!patternColors[index]) {
+                        patternColors[index] = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                    }
+                    ctx.strokeStyle = patternColors[index];
+                } else {
+                    if (style === 'traditional') {
+                        ctx.strokeStyle = `hsl(${index * 30 % 360}, 80%, 60%)`;
+                    } else if (style === 'minimal') {
+                        ctx.strokeStyle = 'white';
+                    } else if (style === 'modern') {
+                        ctx.strokeStyle = `hsl(${(index * 60) % 360}, 100%, 70%)`;
+                    } else { // colorful
+                        ctx.strokeStyle = `hsl(${Math.random() * 360}, 90%, 65%)`;
+                    }
+                }
                 
                 ctx.beginPath();
                 ctx.moveTo(path[0].x, path[0].y);
@@ -455,34 +633,60 @@
                 }
                 
                 // Curve to last point
-                ctx.quadraticCurveTo(
-                    path[path.length - 2].x, 
-                    path[path.length - 2].y,
-                    path[path.length - 1].x,
-                    path[path.length - 1].y
-                );
+                if (path.length > 2) {
+                    ctx.quadraticCurveTo(
+                        path[path.length - 2].x, 
+                        path[path.length - 2].y,
+                        path[path.length - 1].x,
+                        path[path.length - 1].y
+                    );
+                } else {
+                    ctx.lineTo(path[1].x, path[1].y);
+                }
                 
                 // Style-specific drawing
                 if (style === 'traditional') {
-                    ctx.strokeStyle = `hsl(${index * 30}, 80%, 60%)`;
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
                     ctx.stroke();
                 } else if (style === 'minimal') {
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([3, 3]);
                     ctx.stroke();
                     ctx.setLineDash([]);
-                } else { // modern
-                    ctx.strokeStyle = `hsl(${(index * 60) % 360}, 100%, 70%)`;
-                    ctx.lineWidth = 4;
+                } else if (style === 'modern') {
+                    ctx.lineWidth = 3;
                     ctx.shadowColor = ctx.strokeStyle;
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 8;
                     ctx.stroke();
                     ctx.shadowBlur = 0;
+                } else { // colorful
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
                 }
+            });
+        }
+        
+        // Draw Hindu symbols
+        function drawHinduSymbols() {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            selectedSymbols.forEach((symbol, index) => {
+                const angle = (index * 2 * Math.PI) / selectedSymbols.length;
+                const radius = Math.min(width, height) * 0.3;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                ctx.font = '40px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FF6B6B';
+                ctx.shadowColor = 'rgba(255, 107, 107, 0.7)';
+                ctx.shadowBlur = 10;
+                ctx.fillText(symbolMap[symbol] || symbol, x, y);
+                ctx.shadowBlur = 0;
             });
         }
         
@@ -506,13 +710,13 @@
                 const circle = document.createElementNS(svgNS, "circle");
                 circle.setAttribute("cx", dot.x);
                 circle.setAttribute("cy", dot.y);
-                circle.setAttribute("r", 5);
+                circle.setAttribute("r", 2);
                 circle.setAttribute("fill", "#FFD700");
                 svg.appendChild(circle);
             });
             
             // Paths
-            patternPaths.forEach(path => {
+            patternPaths.forEach((path, index) => {
                 if (path.length < 2) return;
                 
                 const pathEl = document.createElementNS(svgNS, "path");
@@ -524,13 +728,39 @@
                     d += ` Q ${path[i].x} ${path[i].y} ${xc} ${yc}`;
                 }
                 
-                d += ` Q ${path[path.length - 2].x} ${path[path.length - 2].y} ${path[path.length - 1].x} ${path[path.length - 1].y}`;
+                if (path.length > 2) {
+                    d += ` Q ${path[path.length - 2].x} ${path[path.length - 2].y} ${path[path.length - 1].x} ${path[path.length - 1].y}`;
+                } else {
+                    d += ` L ${path[1].x} ${path[1].y}`;
+                }
                 
                 pathEl.setAttribute("d", d);
                 pathEl.setAttribute("fill", "none");
-                pathEl.setAttribute("stroke", "white");
+                pathEl.setAttribute("stroke", autoColors && patternColors[index] ? patternColors[index] : "white");
                 pathEl.setAttribute("stroke-width", "2");
                 svg.appendChild(pathEl);
+            });
+            
+            // Hindu symbols
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            selectedSymbols.forEach((symbol, index) => {
+                const angle = (index * 2 * Math.PI) / selectedSymbols.length;
+                const radius = Math.min(width, height) * 0.3;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                const text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", x);
+                text.setAttribute("y", y);
+                text.setAttribute("font-family", "Arial");
+                text.setAttribute("font-size", "40");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("dominant-baseline", "middle");
+                text.setAttribute("fill", "#FF6B6B");
+                text.textContent = symbolMap[symbol] || symbol;
+                svg.appendChild(text);
             });
             
             // Create download
@@ -541,7 +771,7 @@
             
             const a = document.createElement("a");
             a.href = url;
-            a.download = "kolam-pattern.svg";
+            a.download = "advanced-kolam-pattern.svg";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
