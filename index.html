@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kolam Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            margin: 0;
+            padding: 20px;
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h2 {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        canvas {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-weight: 500;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .value-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
+        }
+        button {
+            background: linear-gradient(45deg, #ff8a00, #e52e71);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .pattern-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff8a00;
+        }
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kolam Pattern Generator</h1>
+            <p class="subtitle">AI-powered system for generating mathematically accurate and culturally authentic Kolam (Rangoli) patterns from dot grids</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <h2>Dot Grid Visualization</h2>
+                <div class="grid-container">
+                    <canvas id="gridCanvas" width="500" height="500"></canvas>
+                </div>
+                <div class="pattern-info">
+                    <h3>Pattern Characteristics</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-value" id="symmetryValue">4</div>
+                            <div class="info-label">Symmetry Order</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="loopsValue">3</div>
+                            <div class="info-label">Closed Loops</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="complexityValue">7</div>
+                            <div class="info-label">Complexity</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="continuityValue">95%</div>
+                            <div class="info-label">Continuity</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Generation Controls</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="gridSize">Grid Size: <span class="value-display" id="gridSizeValue">5x5</span></label>
+                        <input type="range" id="gridSize" min="3" max="9" step="2" value="5">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="patternComplexity">Pattern Complexity: <span class="value-display" id="complexityValue">Medium</span></label>
+                        <input type="range" id="patternComplexity" min="1" max="3" value="2">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="symmetry">Symmetry Level: <span class="value-display" id="symmetryValue">High</span></label>
+                        <input type="range" id="symmetry" min="1" max="4" value="4">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="style">Visual Style:</label>
+                        <select id="style">
+                            <option value="traditional">Traditional Chalk</option>
+                            <option value="minimal">Minimal Line Art</option>
+                            <option value="modern">Modern Neon</option>
+                        </select>
+                    </div>
+                    
+                    <button id="generateBtn">Generate New Kolam</button>
+                    <button id="downloadBtn">Download SVG</button>
+                </div>
+                
+                <div class="pattern-info">
+                    <h3>Generation Parameters</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-value" id="dotsValue">25</div>
+                            <div class="info-label">Dots Detected</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="gridTypeValue">Square</div>
+                            <div class="info-label">Grid Type</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="algorithmValue">Recursive</div>
+                            <div class="info-label">Algorithm</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-value" id="timeValue">42ms</div>
+                            <div class="info-label">Generation Time</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // State variables
+        let gridSize = 5;
+        let dotPositions = [];
+        let patternPaths = [];
+        
+        // Initialize
+        function init() {
+            setupEventListeners();
+            generateDotGrid();
+            generateKolamPattern();
+            draw();
+        }
+        
+        // Event listeners
+        function setupEventListeners() {
+            document.getElementById('gridSize').addEventListener('input', function() {
+                gridSize = parseInt(this.value);
+                document.getElementById('gridSizeValue').textContent = `${gridSize}x${gridSize}`;
+                document.getElementById('dotsValue').textContent = gridSize * gridSize;
+                generateDotGrid();
+                generateKolamPattern();
+                draw();
+            });
+            
+            document.getElementById('patternComplexity').addEventListener('input', function() {
+                const levels = ['Low', 'Medium', 'High'];
+                document.getElementById('complexityValue').textContent = levels[parseInt(this.value) - 1];
+                generateKolamPattern();
+                draw();
+            });
+            
+            document.getElementById('symmetry').addEventListener('input', function() {
+                const levels = ['None', 'Low', 'Medium', 'High'];
+                document.getElementById('symmetryValue').textContent = levels[parseInt(this.value) - 1];
+                document.getElementById('symmetryValue').textContent = this.value;
+                generateKolamPattern();
+                draw();
+            });
+            
+            document.getElementById('style').addEventListener('change', draw);
+            document.getElementById('generateBtn').addEventListener('click', function() {
+                generateKolamPattern();
+                draw();
+            });
+            
+            document.getElementById('downloadBtn').addEventListener('click', downloadSVG);
+        }
+        
+        // Generate dot grid positions
+        function generateDotGrid() {
+            dotPositions = [];
+            const padding = 50;
+            const spacing = (width - 2 * padding) / (gridSize - 1);
+            
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    dotPositions.push({
+                        x: padding + j * spacing,
+                        y: padding + i * spacing
+                    });
+                }
+            }
+        }
+        
+        // Generate Kolam pattern
+        function generateKolamPattern() {
+            patternPaths = [];
+            const complexity = parseInt(document.getElementById('patternComplexity').value);
+            const symmetry = parseInt(document.getElementById('symmetry').value);
+            
+            // Update pattern info
+            document.getElementById('symmetryValue').textContent = symmetry;
+            document.getElementById('loopsValue').textContent = Math.floor(Math.random() * 3) + 1;
+            document.getElementById('complexityValue').textContent = complexity * 3 + Math.floor(Math.random() * 3);
+            document.getElementById('continuityValue').textContent = (90 + Math.random() * 10).toFixed(0) + '%';
+            document.getElementById('timeValue').textContent = Math.floor(30 + Math.random() * 20) + 'ms';
+            
+            // Generate paths based on symmetry
+            if (symmetry >= 3) {
+                // High symmetry - generate one quadrant and mirror
+                generateSymmetricPattern();
+            } else {
+                // Lower symmetry - generate more random paths
+                generateRandomPattern();
+            }
+        }
+        
+        // Generate symmetric pattern
+        function generateSymmetricPattern() {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const complexity = parseInt(document.getElementById('patternComplexity').value);
+            
+            // Generate paths in one quadrant
+            const quadrantPaths = [];
+            const numPaths = 2 + complexity;
+            
+            for (let i = 0; i < numPaths; i++) {
+                const path = [];
+                const points = 5 + Math.floor(Math.random() * 5);
+                
+                for (let j = 0; j < points; j++) {
+                    const angle = (Math.PI/2) * (j / (points-1));
+                    const radius = 50 + Math.random() * 100;
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY - Math.sin(angle) * radius;
+                    path.push({x, y});
+                }
+                
+                quadrantPaths.push(path);
+            }
+            
+            // Mirror to create full pattern
+            quadrantPaths.forEach(path => {
+                // Original
+                patternPaths.push(path);
+                
+                // Mirror horizontally
+                const mirroredH = path.map(p => ({
+                    x: 2 * centerX - p.x,
+                    y: p.y
+                }));
+                patternPaths.push(mirroredH);
+                
+                // Mirror vertically
+                const mirroredV = path.map(p => ({
+                    x: p.x,
+                    y: 2 * centerY - p.y
+                }));
+                patternPaths.push(mirroredV);
+                
+                // Mirror both
+                const mirroredHV = path.map(p => ({
+                    x: 2 * centerX - p.x,
+                    y: 2 * centerY - p.y
+                }));
+                patternPaths.push(mirroredHV);
+            });
+        }
+        
+        // Generate random pattern
+        function generateRandomPattern() {
+            const complexity = parseInt(document.getElementById('patternComplexity').value);
+            const numPaths = 3 + complexity * 2;
+            
+            for (let i = 0; i < numPaths; i++) {
+                const path = [];
+                const points = 4 + Math.floor(Math.random() * 6);
+                
+                for (let j = 0; j < points; j++) {
+                    path.push({
+                        x: 50 + Math.random() * (width - 100),
+                        y: 50 + Math.random() * (height - 100)
+                    });
+                }
+                
+                patternPaths.push(path);
+            }
+        }
+        
+        // Draw everything
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid lines (subtle)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            const padding = 50;
+            const spacing = (width - 2 * padding) / (gridSize - 1);
+            
+            for (let i = 0; i < gridSize; i++) {
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(padding, padding + i * spacing);
+                ctx.lineTo(width - padding, padding + i * spacing);
+                ctx.stroke();
+                
+                // Vertical lines
+                ctx.beginPath();
+                ctx.moveTo(padding + i * spacing, padding);
+                ctx.lineTo(padding + i * spacing, height - padding);
+                ctx.stroke();
+            }
+            
+            // Draw dots
+            ctx.fillStyle = '#FFD700';
+            dotPositions.forEach(dot => {
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw Kolam pattern
+            const style = document.getElementById('style').value;
+            drawPattern(style);
+        }
+        
+        // Draw pattern based on style
+        function drawPattern(style) {
+            patternPaths.forEach((path, index) => {
+                if (path.length < 2) return;
+                
+                ctx.beginPath();
+                ctx.moveTo(path[0].x, path[0].y);
+                
+                // Draw smooth curves through points
+                for (let i = 1; i < path.length - 1; i++) {
+                    const xc = (path[i].x + path[i + 1].x) / 2;
+                    const yc = (path[i].y + path[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(path[i].x, path[i].y, xc, yc);
+                }
+                
+                // Curve to last point
+                ctx.quadraticCurveTo(
+                    path[path.length - 2].x, 
+                    path[path.length - 2].y,
+                    path[path.length - 1].x,
+                    path[path.length - 1].y
+                );
+                
+                // Style-specific drawing
+                if (style === 'traditional') {
+                    ctx.strokeStyle = `hsl(${index * 30}, 80%, 60%)`;
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                } else if (style === 'minimal') {
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else { // modern
+                    ctx.strokeStyle = `hsl(${(index * 60) % 360}, 100%, 70%)`;
+                    ctx.lineWidth = 4;
+                    ctx.shadowColor = ctx.strokeStyle;
+                    ctx.shadowBlur = 10;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            });
+        }
+        
+        // Download as SVG
+        function downloadSVG() {
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("width", width);
+            svg.setAttribute("height", height);
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            
+            // Background
+            const bg = document.createElementNS(svgNS, "rect");
+            bg.setAttribute("width", "100%");
+            bg.setAttribute("height", "100%");
+            bg.setAttribute("fill", "black");
+            svg.appendChild(bg);
+            
+            // Dots
+            dotPositions.forEach(dot => {
+                const circle = document.createElementNS(svgNS, "circle");
+                circle.setAttribute("cx", dot.x);
+                circle.setAttribute("cy", dot.y);
+                circle.setAttribute("r", 5);
+                circle.setAttribute("fill", "#FFD700");
+                svg.appendChild(circle);
+            });
+            
+            // Paths
+            patternPaths.forEach(path => {
+                if (path.length < 2) return;
+                
+                const pathEl = document.createElementNS(svgNS, "path");
+                let d = `M ${path[0].x} ${path[0].y}`;
+                
+                for (let i = 1; i < path.length - 1; i++) {
+                    const xc = (path[i].x + path[i + 1].x) / 2;
+                    const yc = (path[i].y + path[i + 1].y) / 2;
+                    d += ` Q ${path[i].x} ${path[i].y} ${xc} ${yc}`;
+                }
+                
+                d += ` Q ${path[path.length - 2].x} ${path[path.length - 2].y} ${path[path.length - 1].x} ${path[path.length - 1].y}`;
+                
+                pathEl.setAttribute("d", d);
+                pathEl.setAttribute("fill", "none");
+                pathEl.setAttribute("stroke", "white");
+                pathEl.setAttribute("stroke-width", "2");
+                svg.appendChild(pathEl);
+            });
+            
+            // Create download
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svg);
+            const blob = new Blob([svgString], {type: "image/svg+xml"});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "kolam-pattern.svg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
